@@ -14,7 +14,6 @@ static BOOL inWindow(void) {
     return (g_resignTime > 0 && (now - g_resignTime) < kWindowDuration);
 }
 
-// ---- 鐘舵€佹崟鑾?----
 %hook UIApplication
 - (void)applicationWillResignActive:(id)application {
     g_resignTime = [[NSDate date] timeIntervalSince1970];
@@ -26,43 +25,57 @@ static BOOL inWindow(void) {
 }
 %end
 
-// ---- 閫氱煡鎷︽埅閫昏緫锛堝鐢ㄥ埌澶氫釜绫诲悕锛?---
-%group NotifyHook
-- (void)userNotificationCenter:(id)center
-       willPresentNotification:(id)notif
-         withCompletionHandler:(void (^)(NSUInteger))handler {
-    if (inWindow()) playAlert();
-    %orig;
-}
-- (void)application:(id)app
-didReceiveRemoteNotification:(id)userInfo
-fetchCompletionHandler:(void (^)(NSUInteger))handler {
-    if (inWindow()) playAlert();
-    %orig;
-}
-%end
-
-// ---- 鍙兘绫诲悕鍏ㄨ鐩?----
-%hook AppDelegate
-%group NotifyHook
-%end
-
 %hook MicroMessengerAppDelegate
-%group NotifyHook
-%end
-
-%hook WAAppDelegate
-%group NotifyHook
+- (void)userNotificationCenter:(id)center willPresentNotification:(id)notif withCompletionHandler:(void (^)(NSUInteger))handler {
+    if (inWindow()) playAlert();
+    %orig;
+}
+- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
+    if (inWindow()) playAlert();
+    %orig;
+}
 %end
 
 %hook MMAppDelegate
-%group NotifyHook
+- (void)userNotificationCenter:(id)center willPresentNotification:(id)notif withCompletionHandler:(void (^)(NSUInteger))handler {
+    if (inWindow()) playAlert();
+    %orig;
+}
+- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
+    if (inWindow()) playAlert();
+    %orig;
+}
+%end
+
+%hook AppDelegate
+- (void)userNotificationCenter:(id)center willPresentNotification:(id)notif withCompletionHandler:(void (^)(NSUInteger))handler {
+    if (inWindow()) playAlert();
+    %orig;
+}
+- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
+    if (inWindow()) playAlert();
+    %orig;
+}
+%end
+
+%hook WAAppDelegate
+- (void)userNotificationCenter:(id)center willPresentNotification:(id)notif withCompletionHandler:(void (^)(NSUInteger))handler {
+    if (inWindow()) playAlert();
+    %orig;
+}
+- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
+    if (inWindow()) playAlert();
+    %orig;
+}
 %end
 
 %hook WeChatAppDelegate
-%group NotifyHook
-%end
-
-%hook WXAppDelegate
-%group NotifyHook
+- (void)userNotificationCenter:(id)center willPresentNotification:(id)notif withCompletionHandler:(void (^)(NSUInteger))handler {
+    if (inWindow()) playAlert();
+    %orig;
+}
+- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
+    if (inWindow()) playAlert();
+    %orig;
+}
 %end
