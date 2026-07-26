@@ -12,14 +12,15 @@ jobs:
 
       - name: Setup Theos
         run: |
-          git clone --recursive https://github.com/theos/theos.git /opt/theos
-          echo "THEOS=/opt/theos" >> $GITHUB_ENV
+          git clone --recursive https://github.com/theos/theos.git $HOME/theos
+          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
 
       - name: Install SDK
         run: |
           curl -L -o /tmp/sdks.zip https://github.com/theos/sdks/archive/refs/heads/master.zip
           unzip -q /tmp/sdks.zip -d /tmp
-          mv /tmp/sdks-master/iPhoneOS16.5.sdk /opt/theos/sdks/
+          mkdir -p $HOME/theos/sdks
+          mv /tmp/sdks-master/iPhoneOS16.5.sdk $HOME/theos/sdks/
 
       - name: Build
         run: make package
