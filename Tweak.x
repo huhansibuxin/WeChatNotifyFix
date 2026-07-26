@@ -30,7 +30,7 @@ static BOOL inWindow(void) {
     if (inWindow()) playAlert();
     %orig;
 }
-- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
+- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(NSUInteger))handler {
     if (inWindow()) playAlert();
     %orig;
 }
@@ -41,7 +41,7 @@ static BOOL inWindow(void) {
     if (inWindow()) playAlert();
     %orig;
 }
-- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
+- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(NSUInteger))handler {
     if (inWindow()) playAlert();
     %orig;
 }
@@ -52,7 +52,7 @@ static BOOL inWindow(void) {
     if (inWindow()) playAlert();
     %orig;
 }
-- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
+- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(NSUInteger))handler {
     if (inWindow()) playAlert();
     %orig;
 }
@@ -63,7 +63,7 @@ static BOOL inWindow(void) {
     if (inWindow()) playAlert();
     %orig;
 }
-- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
+- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(NSUInteger))handler {
     if (inWindow()) playAlert();
     %orig;
 }
@@ -74,7 +74,7 @@ static BOOL inWindow(void) {
     if (inWindow()) playAlert();
     %orig;
 }
-- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))handler {
+- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(NSUInteger))handler {
     if (inWindow()) playAlert();
     %orig;
 }
