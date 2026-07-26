@@ -1,10 +1,7 @@
 #import <AudioToolbox/AudioToolbox.h>
-#import <UserNotifications/UserNotifications.h>
 
 static NSTimeInterval g_resignTime = 0;
 static const NSTimeInterval kWindowDuration = 6.0;
-static NSUInteger g_baseNotifCount = 0;
-static NSTimer *g_pollTimer = nil;
 
 static BOOL inWindow(void) {
     NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
@@ -23,30 +20,45 @@ static void playAlert(void) {
 %hook UIApplication
 - (void)applicationWillResignActive:(id)application {
     g_resignTime = [[NSDate date] timeIntervalSince1970];
-    UNUserNotificationCenter *c = [UNUserNotificationCenter currentNotificationCenter];
-    [c getDeliveredNotificationsWithCompletionHandler:^(NSArray *n) {
-        g_baseNotifCount = n.count;
-    }];
-    g_pollTimer = [NSTimer scheduledTimerWithTimeInterval:0.3 repeats:YES block:^(NSTimer *t) {
-        [c getDeliveredNotificationsWithCompletionHandler:^(NSArray *n) {
-            if (inWindow() && n.count > g_baseNotifCount) {
-                playAlert();
-                g_baseNotifCount = n.count;
-            }
-        }];
-    }];
     %orig;
 }
 - (void)applicationDidEnterBackground:(id)application {
     g_resignTime = 0;
-    [g_pollTimer invalidate];
-    g_pollTimer = nil;
     %orig;
 }
 %end
 
-%hook UNUserNotificationCenter
-- (void)addNotificationRequest:(UNNotificationRequest *)request withCompletionHandler:(void (^)(NSError *))handler {
+// ---- 微信新消息内部方法 ----
+%hook CMessageMgr
+- (void)newMessageByContact:(id)contact msgWrapToAdd:(id)msgWrap animated:(BOOL)animated {
+    if (inWindow()) playAlert();
+    %orig;
+}
+%end
+
+%hook CContactMgr
+- (void)newMessageByContact:(id)contact msgWrapToAdd:(id)msgWrap animated:(BOOL)animated {
+    if (inWindow()) playAlert();
+    %orig;
+}
+%end
+
+%hook MessageMgr
+- (void)newMessageByContact:(id)contact msgWrapToAdd:(id)msgWrap animated:(BOOL)animated {
+    if (inWindow()) playAlert();
+    %orig;
+}
+%end
+
+%hook MMMessageMgr
+- (void)newMessageByContact:(id)contact msgWrapToAdd:(id)msgWrap animated:(BOOL)animated {
+    if (inWindow()) playAlert();
+    %orig;
+}
+%end
+
+%hook WCNewMessageMgr
+- (void)newMessageByContact:(id)contact msgWrapToAdd:(id)msgWrap animated:(BOOL)animated {
     if (inWindow()) playAlert();
     %orig;
 }
