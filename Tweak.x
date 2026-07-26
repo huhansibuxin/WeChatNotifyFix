@@ -1,5 +1,6 @@
 #import <AudioToolbox/AudioToolbox.h>
 #import <UserNotifications/UserNotifications.h>
+#import <objc/runtime.h>
 
 static NSTimeInterval g_resignTime = 0;
 static const NSTimeInterval kWindowDuration = 6.0;
@@ -14,6 +15,7 @@ static BOOL inWindow(void) {
     return (g_resignTime > 0 && (now - g_resignTime) < kWindowDuration);
 }
 
+// ---- State tracking ----
 %hook UIApplication
 - (void)applicationWillResignActive:(id)application {
     g_resignTime = [[NSDate date] timeIntervalSince1970];
@@ -25,57 +27,28 @@ static BOOL inWindow(void) {
 }
 %end
 
-%hook MicroMessengerAppDelegate
-- (void)userNotificationCenter:(id)center willPresentNotification:(id)notif withCompletionHandler:(void (^)(NSUInteger))handler {
+// ---- Dynamic delegate hook ----
+static void (*original_willPresentNotification)(id, SEL, id, id, void (^)(NSUInteger));
+static void replacement_willPresentNotification(id self, SEL _cmd, id center, id notif, void (^handler)(NSUInteger)) {
     if (inWindow()) playAlert();
-    %orig;
+    if (original_willPresentNotification) {
+        original_willPresentNotification(self, _cmd, center, notif, handler);
+    }
 }
-- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(NSUInteger))handler {
-    if (inWindow()) playAlert();
-    %orig;
-}
-%end
 
-%hook MMAppDelegate
-- (void)userNotificationCenter:(id)center willPresentNotification:(id)notif withCompletionHandler:(void (^)(NSUInteger))handler {
-    if (inWindow()) playAlert();
-    %orig;
-}
-- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(NSUInteger))handler {
-    if (inWindow()) playAlert();
-    %orig;
-}
-%end
+static BOOL g_delegateHooked = NO;
 
-%hook AppDelegate
-- (void)userNotificationCenter:(id)center willPresentNotification:(id)notif withCompletionHandler:(void (^)(NSUInteger))handler {
-    if (inWindow()) playAlert();
-    %orig;
-}
-- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(NSUInteger))handler {
-    if (inWindow()) playAlert();
-    %orig;
-}
-%end
-
-%hook WAAppDelegate
-- (void)userNotificationCenter:(id)center willPresentNotification:(id)notif withCompletionHandler:(void (^)(NSUInteger))handler {
-    if (inWindow()) playAlert();
-    %orig;
-}
-- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(NSUInteger))handler {
-    if (inWindow()) playAlert();
-    %orig;
-}
-%end
-
-%hook WeChatAppDelegate
-- (void)userNotificationCenter:(id)center willPresentNotification:(id)notif withCompletionHandler:(void (^)(NSUInteger))handler {
-    if (inWindow()) playAlert();
-    %orig;
-}
-- (void)application:(id)app didReceiveRemoteNotification:(id)userInfo fetchCompletionHandler:(void (^)(NSUInteger))handler {
-    if (inWindow()) playAlert();
+%hook UNUserNotificationCenter
+- (void)setDelegate:(id)delegate {
+    if (delegate && !g_delegateHooked) {
+        Method m = class_getInstanceMethod(object_getClass(delegate),
+            @selector(userNotificationCenter:willPresentNotification:withCompletionHandler:));
+        if (m) {
+            original_willPresentNotification = (void (*)(id, SEL, id, id, void (^)(NSUInteger)))method_getImplementation(m);
+            method_setImplementation(m, (IMP)replacement_willPresentNotification);
+            g_delegateHooked = YES;
+        }
+    }
     %orig;
 }
 %end
