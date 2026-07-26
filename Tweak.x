@@ -26,7 +26,7 @@ static const NSTimeInterval kWindowDuration = 6.0;
     NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
     if (g_resignTime > 0 && (now - g_resignTime) < kWindowDuration) {
         AudioServicesPlayAlertSound(kSystemSoundID_Vibrate);
-        AudioServicesPlaySystemSound(1007);
+        AudioServicesPlaySystemSound(1057);
     }
     %orig;
 }
