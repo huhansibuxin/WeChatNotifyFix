@@ -1,4 +1,5 @@
 #import <AudioToolbox/AudioToolbox.h>
+#import <AVFoundation/AVFoundation.h>
 
 static NSTimeInterval g_resignTime = 0;
 static const NSTimeInterval kWindowDuration = 6.0;
@@ -28,38 +29,9 @@ static void playAlert(void) {
 }
 %end
 
-// ---- 微信新消息内部方法 ----
-%hook CMessageMgr
-- (void)newMessageByContact:(id)contact msgWrapToAdd:(id)msgWrap animated:(BOOL)animated {
+%hook AVAudioPlayer
+- (BOOL)play {
     if (inWindow()) playAlert();
-    %orig;
-}
-%end
-
-%hook CContactMgr
-- (void)newMessageByContact:(id)contact msgWrapToAdd:(id)msgWrap animated:(BOOL)animated {
-    if (inWindow()) playAlert();
-    %orig;
-}
-%end
-
-%hook MessageMgr
-- (void)newMessageByContact:(id)contact msgWrapToAdd:(id)msgWrap animated:(BOOL)animated {
-    if (inWindow()) playAlert();
-    %orig;
-}
-%end
-
-%hook MMMessageMgr
-- (void)newMessageByContact:(id)contact msgWrapToAdd:(id)msgWrap animated:(BOOL)animated {
-    if (inWindow()) playAlert();
-    %orig;
-}
-%end
-
-%hook WCNewMessageMgr
-- (void)newMessageByContact:(id)contact msgWrapToAdd:(id)msgWrap animated:(BOOL)animated {
-    if (inWindow()) playAlert();
-    %orig;
+    return %orig;
 }
 %end
