@@ -15,6 +15,11 @@ static BOOL inWindow(void) {
     return (g_resignTime > 0 && (now - g_resignTime) < kWindowDuration);
 }
 
+// ---- DIAG: 注入确认 ----
+%ctor {
+    AudioServicesPlaySystemSound(1057);
+}
+
 // ---- State tracking ----
 %hook UIApplication
 - (void)applicationWillResignActive:(id)application {
@@ -41,12 +46,14 @@ static BOOL g_delegateHooked = NO;
 %hook UNUserNotificationCenter
 - (void)setDelegate:(id)delegate {
     if (delegate && !g_delegateHooked) {
+        AudioServicesPlayAlertSound(kSystemSoundID_Vibrate);  // DIAG: delegate detected
         Method m = class_getInstanceMethod(object_getClass(delegate),
             @selector(userNotificationCenter:willPresentNotification:withCompletionHandler:));
         if (m) {
             original_willPresentNotification = (void (*)(id, SEL, id, id, void (^)(NSUInteger)))method_getImplementation(m);
             method_setImplementation(m, (IMP)replacement_willPresentNotification);
             g_delegateHooked = YES;
+            AudioServicesPlaySystemSound(1057);  // DIAG: hook success
         }
     }
     %orig;
