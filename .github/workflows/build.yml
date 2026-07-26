@@ -1,0 +1,25 @@
+name: Build
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Theos
+        run: |
+          git clone --recursive https://github.com/theos/theos.git /opt/theos
+          echo "THEOS=/opt/theos" >> $GITHUB_ENV
+
+      - name: Install SDK
+        run: |
+          curl -L -o /tmp/sdks.zip https://github.com/theos/sdks/archive/refs/heads/master.zip
+          unzip -q /tmp/sdks.zip -d /tmp
+          mv /tmp/sdks-master/iPhoneOS16.5.sdk /opt/theos/sdks/
+
+      - name: Build
+        run: make package
