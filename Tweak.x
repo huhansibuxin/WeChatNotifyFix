@@ -3,16 +3,10 @@
 #import <objc/runtime.h>
 
 static NSTimeInterval g_resignTime = 0;
-static const NSTimeInterval kWindowDuration = 6.0;
 
 static void playAlert(void) {
     AudioServicesPlayAlertSound(kSystemSoundID_Vibrate);
     AudioServicesPlaySystemSound(1057);
-}
-
-static BOOL inWindow(void) {
-    NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
-    return (g_resignTime > 0 && (now - g_resignTime) < kWindowDuration);
 }
 
 %ctor {
@@ -32,7 +26,7 @@ static BOOL inWindow(void) {
 
 static void (*original_willPresentNotification)(id, SEL, id, id, void (^)(NSUInteger));
 static void replacement_willPresentNotification(id self, SEL _cmd, id center, id notif, void (^handler)(NSUInteger)) {
-    playAlert();  // unconditional: prove delegate method fires
+    playAlert();
     if (original_willPresentNotification) {
         original_willPresentNotification(self, _cmd, center, notif, handler);
     }
