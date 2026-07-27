@@ -1,3 +1,4 @@
+#import <UserNotifications/UserNotifications.h>
 #import <AudioToolbox/AudioToolbox.h>
 
 static NSTimeInterval g_resignTime = 0;
@@ -11,6 +12,7 @@ static BOOL inWindow(void) {
 
 %ctor {
     AudioServicesPlaySystemSound(1057);
+    [[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionSound) completionHandler:^(BOOL g, NSError *e) {}];
 }
 
 %hook UIApplication
@@ -29,8 +31,12 @@ static BOOL inWindow(void) {
 - (void)setValue:(NSUInteger)value {
     if (inWindow() && value > 0 && !g_alerted) {
         g_alerted = YES;
-        AudioServicesPlayAlertSound(kSystemSoundID_Vibrate);
-        AudioServicesPlaySystemSound(1057);
+        UNMutableNotificationContent *c = [[UNMutableNotificationContent alloc] init];
+        c.title = @"微信";
+        c.body = @"收到新消息";
+        c.sound = [UNNotificationSound defaultSound];
+        UNNotificationRequest *r = [UNNotificationRequest requestWithIdentifier:[[NSUUID UUID] UUIDString] content:c trigger:nil];
+        [[UNUserNotificationCenter currentNotificationCenter] addNotificationRequest:r withCompletionHandler:^(NSError *e) {}];
     }
     %orig;
 }
