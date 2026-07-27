@@ -1,8 +1,8 @@
 Package: com.huhansibuxin.wechatnotifyfix
 Name: WeChatNotifyFix
-Version: 1.0.11-d
+Version: 1.0.12
 Architecture: iphoneos-arm64
-Description: Fix WeChat notification missing vibration/sound during foreground-to-background transition (DIAGNOSTIC)
+Description: Fix WeChat notification missing vibration/sound during foreground-to-background transition
 Maintainer: huhansibuxin
 Author: huhansibuxin
 Section: Tweaks
