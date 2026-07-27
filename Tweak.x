@@ -12,17 +12,20 @@ static BOOL inWindow(void) {
 
 %ctor {
     AudioServicesPlaySystemSound(1057);
-    [[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionSound | UNAuthorizationOptionBadge) completionHandler:^(BOOL granted, NSError *e) {}];
+    [[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionSound | UNAuthorizationOptionBadge) completionHandler:^(BOOL g, NSError *e) {}];
+    NSLog(@"[WNF] tweak loaded v1.0.14");
 }
 
 %hook UIApplication
 - (void)applicationWillResignActive:(id)application {
     g_resignTime = [[NSDate date] timeIntervalSince1970];
     g_alerted = NO;
+    NSLog(@"[WNF] window start");
     %orig;
 }
 - (void)applicationDidEnterBackground:(id)application {
     g_resignTime = 0;
+    NSLog(@"[WNF] window end");
     %orig;
 }
 %end
@@ -31,12 +34,17 @@ static BOOL inWindow(void) {
 - (void)AsyncOnAddMsgForSession:(id)arg1 MsgWrap:(id)arg2 NewMsgArriveNotify:(BOOL)arg3 {
     if (inWindow() && !g_alerted) {
         g_alerted = YES;
-        UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
-        content.title = @"微信";
-        content.body = @"收到新消息";
-        content.sound = [UNNotificationSound defaultSound];
-        UNNotificationRequest *req = [UNNotificationRequest requestWithIdentifier:[[NSUUID UUID] UUIDString] content:content trigger:nil];
-        [[UNUserNotificationCenter currentNotificationCenter] addNotificationRequest:req withCompletionHandler:^(NSError *e) {}];
+        NSLog(@"[WNF] ASYNC ON ADD MSG FOR SESSION HIT! notify=%d", arg3);
+        AudioServicesPlayAlertSound(kSystemSoundID_Vibrate);
+        AudioServicesPlaySystemSound(1057);
+        UNMutableNotificationContent *c = [[UNMutableNotificationContent alloc] init];
+        c.title = @"微信";
+        c.body = @"收到新消息";
+        c.sound = [UNNotificationSound defaultSound];
+        UNNotificationRequest *r = [UNNotificationRequest requestWithIdentifier:[[NSUUID UUID] UUIDString] content:c trigger:nil];
+        [[UNUserNotificationCenter currentNotificationCenter] addNotificationRequest:r withCompletionHandler:^(NSError *e) {
+            NSLog(@"[WNF] notification posted, error=%@", e);
+        }];
     }
     %orig;
 }
