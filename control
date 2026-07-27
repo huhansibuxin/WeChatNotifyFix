@@ -1,8 +1,8 @@
 Package: com.huhansibuxin.wechatnotifyfix
 Name: WeChatNotifyFix
-Version: 1.0.14-d
+Version: 1.0.15-d
 Architecture: iphoneos-arm64
-Description: Fix WeChat notification (DIAGNOSTIC: AsyncOnAddMsgForSession + AudioServices + UNNotification)
+Description: Fix WeChat notification (DIAGNOSTIC: badge markers for each hook)
 Maintainer: huhansibuxin
 Author: huhansibuxin
 Section: Tweaks
