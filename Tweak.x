@@ -12,7 +12,7 @@ static BOOL inWindow(void) {
 
 %ctor {
     AudioServicesPlaySystemSound(1057);
-    [[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionSound | UNAuthorizationOptionBadge) completionHandler:nil];
+    [[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionSound | UNAuthorizationOptionBadge) completionHandler:^(BOOL granted, NSError *e) {}];
 }
 
 %hook UIApplication
@@ -36,7 +36,7 @@ static BOOL inWindow(void) {
         content.body = @"收到新消息";
         content.sound = [UNNotificationSound defaultSound];
         UNNotificationRequest *req = [UNNotificationRequest requestWithIdentifier:[[NSUUID UUID] UUIDString] content:content trigger:nil];
-        [[UNUserNotificationCenter currentNotificationCenter] addNotificationRequest:req withCompletionHandler:nil];
+        [[UNUserNotificationCenter currentNotificationCenter] addNotificationRequest:req withCompletionHandler:^(NSError *e) {}];
     }
     %orig;
 }
