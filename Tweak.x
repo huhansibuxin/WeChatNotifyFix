@@ -2,49 +2,48 @@
 
 static NSTimeInterval g_resignTime = 0;
 static const NSTimeInterval kWindowDuration = 6.0;
+static BOOL g_alerted = NO;
 
 static BOOL inWindow(void) {
     NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
     return (g_resignTime > 0 && (now - g_resignTime) < kWindowDuration);
 }
 
+static void playAlert(void) {
+    if (g_alerted) return;
+    g_alerted = YES;
+    AudioServicesPlayAlertSound(kSystemSoundID_Vibrate);
+    AudioServicesPlaySystemSound(1057);
+}
+
 %ctor {
     AudioServicesPlaySystemSound(1057);
-    NSLog(@"[WNF] tweak loaded");
 }
 
 %hook UIApplication
 - (void)applicationWillResignActive:(id)application {
     g_resignTime = [[NSDate date] timeIntervalSince1970];
-    NSLog(@"[WNF] window start at %f", g_resignTime);
+    g_alerted = NO;
     %orig;
 }
 - (void)applicationDidEnterBackground:(id)application {
     g_resignTime = 0;
-    NSLog(@"[WNF] window end");
     %orig;
 }
 %end
 
-// 诊断：窗口期内收到任何 NSNotification 就打印
-%hook NSNotificationCenter
-- (void)postNotification:(NSNotification *)notification {
-    if (inWindow()) {
-        NSLog(@"[WNF] NSNotification: %@ | object: %@ | userInfo: %@",
-              notification.name, notification.object, notification.userInfo);
-    }
+// 核心：新消息到达，含通知开关
+%hook CMessageMgr
+- (void)AsyncOnAddMsgForSession:(id)arg1 MsgWrap:(id)arg2 NewMsgArriveNotify:(BOOL)arg3 {
+    if (inWindow()) playAlert();
     %orig;
 }
-- (void)postNotificationName:(NSString *)name object:(id)object {
-    if (inWindow()) {
-        NSLog(@"[WNF] NSNotification: %@ | object: %@", name, object);
-    }
+- (void)MainThreadNotifyToExt:(id)arg1 {
+    if (inWindow()) playAlert();
     %orig;
 }
-- (void)postNotificationName:(NSString *)name object:(id)object userInfo:(NSDictionary *)userInfo {
-    if (inWindow()) {
-        NSLog(@"[WNF] NSNotification: %@ | object: %@ | userInfo: %@", name, object, userInfo);
-    }
+- (void)AsyncOnUnReadChange:(id)arg1 {
+    if (inWindow()) playAlert();
     %orig;
 }
 %end
