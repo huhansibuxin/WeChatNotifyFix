@@ -1,4 +1,5 @@
 #import <AudioToolbox/AudioToolbox.h>
+#import <UserNotifications/UserNotifications.h>
 
 static NSTimeInterval g_resignTime = 0;
 static const NSTimeInterval kWindowDuration = 6.0;
@@ -9,15 +10,9 @@ static BOOL inWindow(void) {
     return (g_resignTime > 0 && (now - g_resignTime) < kWindowDuration);
 }
 
-static void playAlert(void) {
-    if (g_alerted) return;
-    g_alerted = YES;
-    AudioServicesPlayAlertSound(kSystemSoundID_Vibrate);
-    AudioServicesPlaySystemSound(1057);
-}
-
 %ctor {
     AudioServicesPlaySystemSound(1057);
+    [[UNUserNotificationCenter currentNotificationCenter] requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionSound | UNAuthorizationOptionBadge) completionHandler:nil];
 }
 
 %hook UIApplication
@@ -32,18 +27,17 @@ static void playAlert(void) {
 }
 %end
 
-// 核心：新消息到达，含通知开关
 %hook CMessageMgr
 - (void)AsyncOnAddMsgForSession:(id)arg1 MsgWrap:(id)arg2 NewMsgArriveNotify:(BOOL)arg3 {
-    if (inWindow()) playAlert();
-    %orig;
-}
-- (void)MainThreadNotifyToExt:(id)arg1 {
-    if (inWindow()) playAlert();
-    %orig;
-}
-- (void)AsyncOnUnReadChange:(id)arg1 {
-    if (inWindow()) playAlert();
+    if (inWindow() && !g_alerted) {
+        g_alerted = YES;
+        UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
+        content.title = @"微信";
+        content.body = @"收到新消息";
+        content.sound = [UNNotificationSound defaultSound];
+        UNNotificationRequest *req = [UNNotificationRequest requestWithIdentifier:[[NSUUID UUID] UUIDString] content:content trigger:nil];
+        [[UNUserNotificationCenter currentNotificationCenter] addNotificationRequest:req withCompletionHandler:nil];
+    }
     %orig;
 }
 %end
