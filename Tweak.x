@@ -31,15 +31,14 @@ static BOOL inWindow(void) {
 - (void)setValue:(NSUInteger)value {
     if (inWindow() && value > 0 && !g_alerted) {
         g_alerted = YES;
-        // 延迟 0.5 秒，绕过 Inactive 状态对通知的压制
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            UNMutableNotificationContent *c = [[UNMutableNotificationContent alloc] init];
-            c.title = @"微信";
-            c.body = @"收到新消息";
-            c.sound = [UNNotificationSound defaultSound];
-            UNNotificationRequest *r = [UNNotificationRequest requestWithIdentifier:[[NSUUID UUID] UUIDString] content:c trigger:nil];
-            [[UNUserNotificationCenter currentNotificationCenter] addNotificationRequest:r withCompletionHandler:^(NSError *e) {}];
-        });
+        UNMutableNotificationContent *c = [[UNMutableNotificationContent alloc] init];
+        c.title = @"微信";
+        c.body = @"收到新消息";
+        c.sound = [UNNotificationSound defaultSound];
+        // 用定时触发器替代即时通知，系统预注册不受 Inactive 状态限制
+        UNTimeIntervalNotificationTrigger *t = [UNTimeIntervalNotificationTrigger triggerWithTimeInterval:1.0 repeats:NO];
+        UNNotificationRequest *r = [UNNotificationRequest requestWithIdentifier:[[NSUUID UUID] UUIDString] content:c trigger:t];
+        [[UNUserNotificationCenter currentNotificationCenter] addNotificationRequest:r withCompletionHandler:^(NSError *e) {}];
     }
     %orig;
 }
