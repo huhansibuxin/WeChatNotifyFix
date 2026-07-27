@@ -1,8 +1,8 @@
 #import <AudioToolbox/AudioToolbox.h>
-#import <UIKit/UIKit.h>
 
 static NSTimeInterval g_resignTime = 0;
 static const NSTimeInterval kWindowDuration = 6.0;
+static BOOL g_alerted = NO;
 
 static BOOL inWindow(void) {
     NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
@@ -16,6 +16,7 @@ static BOOL inWindow(void) {
 %hook UIApplication
 - (void)applicationWillResignActive:(id)application {
     g_resignTime = [[NSDate date] timeIntervalSince1970];
+    g_alerted = NO;
     %orig;
 }
 - (void)applicationDidEnterBackground:(id)application {
@@ -24,30 +25,13 @@ static BOOL inWindow(void) {
 }
 %end
 
-%hook CMessageMgr
-// 每个方法触发时设不同角标，一眼看出哪个命中了
-- (void)AsyncOnAddMsgForSession:(id)arg1 MsgWrap:(id)arg2 NewMsgArriveNotify:(BOOL)arg3 {
-    if (inWindow()) [UIApplication sharedApplication].applicationIconBadgeNumber = 777;
-    %orig;
-}
-- (void)AsyncOnAddMsg:(id)arg1 MsgWrap:(id)arg2 {
-    if (inWindow()) [UIApplication sharedApplication].applicationIconBadgeNumber = 666;
-    %orig;
-}
-- (void)AddMsg:(id)arg1 MsgWrap:(id)arg2 {
-    if (inWindow()) [UIApplication sharedApplication].applicationIconBadgeNumber = 555;
-    %orig;
-}
-- (void)AsyncOnPreAddMsg:(id)arg1 MsgWrap:(id)arg2 {
-    if (inWindow()) [UIApplication sharedApplication].applicationIconBadgeNumber = 444;
-    %orig;
-}
-- (void)MainThreadNotifyToExt:(id)arg1 {
-    if (inWindow()) [UIApplication sharedApplication].applicationIconBadgeNumber = 333;
-    %orig;
-}
-- (void)AsyncOnUnReadChange:(id)arg1 {
-    if (inWindow()) [UIApplication sharedApplication].applicationIconBadgeNumber = 222;
+%hook MMBadgeView
+- (void)setValue:(NSUInteger)value {
+    if (inWindow() && value > 0 && !g_alerted) {
+        g_alerted = YES;
+        AudioServicesPlayAlertSound(kSystemSoundID_Vibrate);
+        AudioServicesPlaySystemSound(1057);
+    }
     %orig;
 }
 %end
